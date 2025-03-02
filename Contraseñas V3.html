@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Contraseñas Seguras</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest"></script>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+    </style>
+</head>
+<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen p-4">
+    <div class="bg-white shadow-lg rounded-xl p-6 max-w-md w-full fade-in">
+        <h1 class="text-2xl font-bold text-gray-800 mb-4">🔐 Generador de Contraseñas Seguras</h1>
+        
+        <div class="mb-4">
+            <label class="block text-gray-700 font-medium">Longitud de la contraseña:</label>
+            <input type="number" id="length" value="16" min="8" max="64" class="w-full p-2 border rounded mt-1">
+        </div>
+
+        <div class="mb-4 flex flex-wrap gap-2">
+            <label class="flex items-center"><input type="checkbox" id="includeNumbers" checked> <span class="ml-2">Números (0-9)</span></label>
+            <label class="flex items-center"><input type="checkbox" id="includeUppercase" checked> <span class="ml-2">Mayúsculas (A-Z)</span></label>
+            <label class="flex items-center"><input type="checkbox" id="includeLowercase" checked> <span class="ml-2">Minúsculas (a-z)</span></label>
+            <label class="flex items-center"><input type="checkbox" id="includeSymbols" checked> <span class="ml-2">Símbolos (!@#$%^&*)</span></label>
+            <label class="flex items-center"><input type="checkbox" id="includeWords"> <span class="ml-2">Palabras aleatorias</span></label>
+        </div>
+        
+        <button onclick="generatePassword()" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition">Generar Contraseña</button>
+        
+        <div class="mt-4 flex items-center gap-2">
+            <input type="text" id="passwordOutput" readonly class="w-full p-2 border rounded bg-white text-black" placeholder="Tu contraseña aparecerá aquí">
+            <button id="copyButton" onclick="copyPassword()" class="p-2 bg-gray-200 rounded hover:bg-gray-300 transition hidden">
+                <i data-lucide="copy"></i>
+            </button>
+        </div>
+    </div>
+    
+    <script>
+        lucide.createIcons();
+        
+        const words = ["tigre", "sol", "luz", "roca", "nube", "delta", "fuego", "marino", "cristal", "neón"];
+
+        function generatePassword() {
+            const length = document.getElementById("length").value;
+            const includeNumbers = document.getElementById("includeNumbers").checked;
+            const includeUppercase = document.getElementById("includeUppercase").checked;
+            const includeLowercase = document.getElementById("includeLowercase").checked;
+            const includeSymbols = document.getElementById("includeSymbols").checked;
+            const includeWords = document.getElementById("includeWords").checked;
+            const passwordField = document.getElementById("passwordOutput");
+            const copyButton = document.getElementById("copyButton");
+            
+            let charset = "";
+            if (includeNumbers) charset += "0123456789";
+            if (includeUppercase) charset += "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            if (includeLowercase) charset += "abcdefghijklmnopqrstuvwxyz";
+            if (includeSymbols) charset += "!@#$%^&*()_+{}[]|:;<>,.?/";
+            
+            if (charset.length === 0 && !includeWords) {
+                alert("Selecciona al menos un tipo de caracter");
+                return;
+            }
+            
+            let password = "";
+            if (includeWords) {
+                for (let i = 0; i < 3; i++) {
+                    password += words[Math.floor(Math.random() * words.length)];
+                }
+            }
+            
+            const array = new Uint8Array(length - password.length);
+            window.crypto.getRandomValues(array);
+            
+            for (let i = 0; i < array.length; i++) {
+                password += charset[array[i] % charset.length];
+            }
+            
+            passwordField.value = password;
+            passwordField.type = "text"; // Asegurar que la contraseña sea visible
+            copyButton.classList.remove("hidden"); // Hacer visible el botón de copiar
+        }
+        
+        function copyPassword() {
+            const passwordField = document.getElementById("passwordOutput");
+            passwordField.select();
+            navigator.clipboard.writeText(passwordField.value).then(() => {
+                alert("Contraseña copiada al portapapeles");
+            });
+        }
+    </script>
+</body>
+</html>
